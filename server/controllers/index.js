@@ -12,19 +12,8 @@ const addTodo = async (ctx)=>{
     user_token = ctx.request.body.user,
     user_id = jwt.decode(user_token)._id
   let user
-  await User.findById(user_id,(err,val)=>{
-    if (err) {
-      console.log('找user前')
-      ctx.body = {
-        success: false
-      }
-      //  此时应该结束 addTodo 函数
-
-    }else {
-      console.log('找user前')
-      user = val
-    }
-  })
+  await User.findById(user_id)
+    .then(value => {user = value})
   console.log(ctx.body)
   console.log('找user后')
   const data = {
@@ -47,11 +36,9 @@ const createTodo = async (ctx,data)=>{
   // 用then 而不用他自带的 (err,val)=>{}
   // 因为那个东西导致create函数返回的不是个pormise对象之类的
   // 反正不适用于await
-
-  //  然而如果用自带的(err,val)=>{}的话，
-  //  他不仅不是promise对象，也不是个async函数
-  //  所以不需要await
-  //  所以还是推荐用自带的吧
+  // 自带的太垃圾了  进行操作的时候
+  // 经常即使使用await  他也等不住
+  // 后面的操作有时候还是先于这个自带的内容
     .then(value=>{
       todoValue = value
       console.log('发出去了')
@@ -93,11 +80,12 @@ const getShared = async ctx=>{
   const id = ctx.request.body.id
   await Todo.find({
     shared: id
-  },(err,val)=>{
-    ctx.body = {
-      value: val
-    }
   })
+    .then(val=>{
+      ctx.body = {
+        value: val
+      }
+    })
 }
 
 const addDeadline = async ctx=>{
@@ -142,26 +130,27 @@ const shareTodo = async ctx=>{
     for (let i=0;i<member.length;i++) {
       await User.findOne({
         _id: member[i]
-      },(err,val)=>{
-        val.todoList.push(id)
-        User.updateOne({
-          _id: member[i]
-        },{
-          todoList: val.todoList
-        },(e,v)=>{
-          Todo.findOne({
-            _id: id
-          },(todoErr,todoVal)=>{
-            shared = todoVal.shared
-            shared.push(member[i])
-            Todo.updateOne({
+      })
+        .then(val=>{
+          val.todoList.push(id)
+          User.updateOne({
+            _id: member[i]
+          },{
+            todoList: val.todoList
+          },(e,v)=>{
+            Todo.findOne({
               _id: id
-            },{
-              shared: shared
+            },(todoErr,todoVal)=>{
+              shared = todoVal.shared
+              shared.push(member[i])
+              Todo.updateOne({
+                _id: id
+              },{
+                shared: shared
+              })
             })
           })
         })
-      })
       ctx.body = {
         success: true
       }
@@ -179,21 +168,23 @@ const shareTodo = async ctx=>{
           isGroup = false
         }
       })
-    await Group.findById(member,(err,val)=>{
-      if (val) {
-        todoList = val.todoList||[]
-        if (todoList.indexOf(id)===-1) {
-          todoList.push(id)
+    await Group.findById(member)
+      .then(val=>{
+        if (val) {
+          todoList = val.todoList||[]
+          if (todoList.indexOf(id)===-1) {
+            todoList.push(id)
+          }
+          isGroup = true
         }
-        isGroup = true
-      }
-    })
-    await Todo.findById(id,(err,val)=>{
-      shared = val.shared
-      if (shared.indexOf(member)===-1) {
-        shared.push(member)
-      }
-    })
+      })
+    await Todo.findById(id)
+      .then(val=>{
+        shared = val.shared
+        if (shared.indexOf(member)===-1) {
+          shared.push(member)
+        }
+      })
     await Todo.updateOne({
       _id: id
     },{
@@ -204,11 +195,12 @@ const shareTodo = async ctx=>{
         _id: member
       },{
         todoList: todoList
-      },(err,val)=>{
-        ctx.body = {
-          value: val
-        }
       })
+        .then(val=>{
+          ctx.body = {
+            value: val
+          }
+        })
     }else {
       await User.updateOne({
         _id: member
@@ -227,13 +219,14 @@ const shareTodo = async ctx=>{
 const search = async ctx=>{
   let str = ctx.request.body.search,
     re = new RegExp(str)
-  await User.find((err,val)=>{
-    let finded=val.filter(v=>{
-      return re.test(v.name)})
-    ctx.body = {
-      value: finded
-    }
-  })
+  await User.find()
+    .then(val=>{
+      let finded=val.filter(v=>{
+        return re.test(v.name)})
+      ctx.body = {
+        value: finded
+      }
+    })
 }
 
 const addFriend = async ctx=>{
@@ -242,16 +235,17 @@ const addFriend = async ctx=>{
     friends
   await User.findOne({
     _id: id
-  }, (err, val) => {
-    if (val.friends) {
-      friends = val.friends
-    } else {
-      friends = []
-    }
-    if (friends.indexOf(f_id)===-1) {
-      friends.push(f_id)
-    }
   })
+    .then(val => {
+      if (val.friends) {
+        friends = val.friends
+      } else {
+        friends = []
+      }
+      if (friends.indexOf(f_id)===-1) {
+        friends.push(f_id)
+      }
+    })
   await User.updateOne({
     _id: id
   },{
@@ -269,15 +263,17 @@ const deleteFriend = async ctx=>{
     new_f = []
   await User.findOne({
     _id: id
-  },(err,val)=>{
-    new_f = val.friends
-    new_f.splice(new_f.indexOf(f_id),1)
   })
+    .then(val=>{
+      new_f = val.friends
+      new_f.splice(new_f.indexOf(f_id),1)
+    })
   await User.updateOne({
     _id: id
   },{
     friends: new_f
-  },(err,val)=>{
+  })
+    .then(val=>{
     ctx.body = {
       val: val
     }
@@ -294,16 +290,18 @@ const getFriends = async ctx=>{
     })
   await User.findOne({
     _id: id
-  },(err,val)=>{
-      friends = val.friends
   })
+    .then(val=>{
+      friends = val.friends
+    })
   await User.find({
     _id: {$in:friends}
-  },(err,val)=>{
-    ctx.body = {
-      friends: val.map(item=>friendStructure(item))
-    }
   })
+    .then(val=>{
+      ctx.body = {
+        friends: val.map(item=>friendStructure(item))
+      }
+    })
 }
 
 const deleteTodo = async ctx=>{
@@ -312,27 +310,30 @@ const deleteTodo = async ctx=>{
     tid = body.todo_id
     let shared,
       creator
-  await Todo.findById(tid,(err,val)=>{
-    creator = val.creator
-    shared = val.shared
-  })
+  await Todo.findById(tid)
+    .then(val=>{
+      creator = val.creator
+      shared = val.shared
+    })
   if (uid ==creator) {
     let todoList
     await Todo.deleteOne({_id: tid})
-    await User.findById(uid,(err,val)=>{
-      todoList = val.todoList
-      todoList.splice(todoList.indexOf(tid),1)
-    })
+    await User.findById(uid)
+      .then(val=>{
+        todoList = val.todoList
+        todoList.splice(todoList.indexOf(tid),1)
+      })
     await User.updateOne({
       _id: uid
     },{
       todoList: todoList
     })
     for (let i=0;i<shared.length;i++) {
-      await User.findById(shared[i],(err,val)=>{
-        todoList = val.todoList
-        todoList.splice(todoList.indexOf(tid),1)
-      })
+      await User.findById(shared[i])
+        .then(val=>{
+          todoList = val.todoList
+          todoList.splice(todoList.indexOf(tid),1)
+        })
       await User.updateOne({
         _id: shared[i]
       },{
@@ -386,13 +387,14 @@ const addGroup = async ctx=>{
       gid=val._id
     })
   for (let i=0;i<groupMembers.length;i++) {
-    await User.findById(groupMembers[i].user_id,(err,val)=>{
-      groups = val.groups||[]
-      console.log('gid:',gid)
-      if (groups.indexOf(gid)===-1) {
-        groups.push(gid)
-      }
-    })
+    await User.findById(groupMembers[i].user_id)
+      .then(val=>{
+        groups = val.groups||[]
+        console.log('gid:',gid)
+        if (groups.indexOf(gid)===-1) {
+          groups.push(gid)
+        }
+      })
     await User.updateOne({
       _id: groupMembers[i].user_id
     },{
@@ -409,15 +411,15 @@ const getGroups = async ctx=>{
   const uid = ctx.request.body.uid
   let gids,
     groups=[]
-  await User.findById(uid,(err,val)=>{
-    gids = val.groups
-  })
+  await User.findById(uid)
+    .then(value => {gids = value.groups})
   for (let i=0;i<gids.length;i++) {
-    await Group.findById(gids[i],(err,val)=>{
-      if (groups.indexOf(val)===-1) {
-        groups.push(val)
-      }
-    })
+    await Group.findById(gids[i])
+      .then(val=>{
+        if (groups.indexOf(val)===-1) {
+          groups.push(val)
+        }
+      })
   }
   ctx.body = {
     value: groups
@@ -428,12 +430,13 @@ const getGroupMembers = async ctx=>{
   const members = ctx.request.body.members
   let membersed=[]
   for (let i=0;i<members.length;i++) {
-    await User.findById(members[i].user_id,(err,val)=>{
-      membersed.push({
-        name: val.name,
-        selfImg: val.selfImg
+    await User.findById(members[i].user_id)
+      .then(val=>{
+        membersed.push({
+          name: val.name,
+          selfImg: val.selfImg
+        })
       })
-    })
   }
   ctx.body = {
     value: membersed
@@ -442,9 +445,10 @@ const getGroupMembers = async ctx=>{
 
 const getUserName = async ctx=>{
   const uid = ctx.request.body.uid
-  await User.findById(uid,(err,val)=>{
-    ctx.body = val.name
-  })
+  await User.findById(uid)
+    .then(val=>{
+      ctx.body = val.name
+    })
 }
 
 const getTodoByID = async ctx=>{
@@ -454,9 +458,10 @@ const getTodoByID = async ctx=>{
     _id: {
       $in: tids
     }
-  },(err,val)=>{
-    ctx.body = val
   })
+    .then(val=>{
+      ctx.body = val
+    })
 }
 import busBoy from 'async-busboy'
 
@@ -490,18 +495,20 @@ const sign = async ctx=>{
       email: body.email,
       password: body.password,
       selfImg: body.selfImg
-    },(err,val)=>{
-      value = val
     })
+      .then(val=>{
+        value = val
+      })
   }else {
     await User.create({
       name: body.name,
       account: body.account,
       email: body.email,
       password: body.password,
-    },(err,val)=>{
-        value= val
     })
+      .then(val=>{
+        value= val
+      })
   }
   ctx.body = {
     success: true,
