@@ -249,7 +249,9 @@
         }
       },
       decodedUser(){
-        return jwt.decode(this.user)
+        if (this.user) {
+          return jwt.decode(this.user)
+        }
       }
     },
     // watch: {
