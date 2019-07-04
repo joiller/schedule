@@ -267,7 +267,8 @@
         this.user = this.$cookies.get('schedule-user')
       },
       logout(){
-        this.$cookies.set('schedule-user', null)
+        this.$cookies.remove('schedule-user')
+        this.user = this.$cookies.get('schedule-user')
       },
       addTodo(){
         if (this.todo) {
