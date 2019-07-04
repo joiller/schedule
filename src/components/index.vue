@@ -2,7 +2,9 @@
     <div>
       <nav class="sidenav">
         <div>
-          {{user.name}}
+          <img :src="decodedUser.selfImg" style="width: 50px;height: 50px;border-radius: 50%" alt="">
+          <p>{{decodedUser.name}}</p>
+          <p><b-button v-on:click="logout">注销</b-button></p>
         </div>
         <ul class="navbar-nav" ref="navbar">
           <li class="nav-item item-checked" @click="navi(1)">我的安排</li>
@@ -261,6 +263,10 @@
     methods:{
       getUser(){
         this.user = this.$cookies.get('schedule-user')
+      },
+      logout(){
+        this.$cookies.set('schedule-user', null)
+        this.$router.push('/login')
       },
       addTodo(){
         if (this.todo) {
