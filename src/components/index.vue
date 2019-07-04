@@ -268,7 +268,6 @@
       },
       logout(){
         this.$cookies.set('schedule-user', null)
-        this.$router.push('/login')
       },
       addTodo(){
         if (this.todo) {
@@ -443,6 +442,11 @@
         this.$router.push('/login')
       }else{
         this.getTodos()
+      }
+    },
+    beforeUpdate(){
+      if (!this.user) {
+        this.$router.push('/login')
       }
     }
   }
