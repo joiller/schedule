@@ -118,6 +118,35 @@ const complete = async ctx=>{
     })
 }
 
+const uncomplete = async ctx=>{
+  const id = ctx.request.body.id,
+    uid = ctx.request.body.user._id
+  let success
+  await Todo.findById(id)
+    .then(val=>{
+      if (uid === val.creator.toString()|| val.editor.indexOf(uid)!==-1) {
+        success = true
+      } else {
+        ctx.body = {
+          success: false
+        }
+      }
+    })
+  if (success) {
+    await Todo.updateOne({
+      _id:id
+      },{
+      completed: false
+    })
+      .then(val=>{
+        ctx.body = {
+          success: success,
+          val: val
+        }
+      })
+  }
+}
+
 const shareTodo = async ctx=>{
   const body = ctx.request.body,
     id = body.id,
@@ -521,6 +550,7 @@ export default {
   getTodos,
   addDeadline,
   complete,
+  uncomplete,
   shareTodo,
   search,
   addFriend,

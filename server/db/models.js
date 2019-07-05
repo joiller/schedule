@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-mongoose.connect('mongodb://localhost/schedule', { useNewUrlParser: true })
+mongoose.connect('mongodb://localhost/stu', { useNewUrlParser: true })
   .then(()=>{
     console.log('ok ok')
   })

@@ -350,9 +350,14 @@
           user: this.decodedUser,
           todo_id: id
         })
+          .then(this.getTodos)
       },
       uncompleteTodo(id){
-
+        this.$http.post('/uncomplete', {
+          user:this.decodedUser,
+          id: id
+        })
+          .then(this.getTodos)
       },
       ltSearch(){
 

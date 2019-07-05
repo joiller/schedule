@@ -31,6 +31,10 @@ module.exports = {
         target: "http://localhost:3000",
         changeOrigin: true
       },
+      "/uncomplete":{
+        target: "http://localhost:3000",
+        changeOrigin: true
+      },
       "/shareTodo":{
         target: "http://localhost:3000",
         changeOrigin: true

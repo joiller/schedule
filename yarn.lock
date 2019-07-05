@@ -3781,6 +3781,13 @@ koa-static@^5.0.0:
     debug "^3.1.0"
     koa-send "^5.0.0"
 
+koa2-history-api-fallback@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/koa2-history-api-fallback/-/koa2-history-api-fallback-0.1.0.tgz#31cdd70b0ff8e1d0a5ba61afdec24d19e739084f"
+  integrity sha512-8arvss84gQvJgw1S0wGUE0ZDyIUJW8x3OaH1hirgQlOSfLn98Xc459gIqzrKMqTwK7SXhOs91ISQWEKb738v0g==
+  dependencies:
+    url "^0.11.0"
+
 koa@^2.7.0:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/koa/-/koa-2.7.0.tgz#7e00843506942b9d82c6cc33749f657c6e5e7adf"

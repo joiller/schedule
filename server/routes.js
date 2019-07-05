@@ -28,6 +28,10 @@ router.post('/complete',async ctx=>{
   await index.complete(ctx)
 })
 
+router.post('/uncomplete',async ctx=>{
+  await index.uncomplete(ctx)
+})
+
 router.post('/shareTodo', async ctx=>{
   await index.shareTodo(ctx)
 })

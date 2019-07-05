@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 const User = db.User
 
 const getUserAtLog = async ctx=>{
+  console.log('logining')
   await User.findOne({
     account: ctx.request.body.account,
     password: ctx.request.body.password
